@@ -146,7 +146,7 @@ Results will be saved as CSV files in the corresponding experiment folder (e.g.,
 Qualitative comparison with competing methods:
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/papercodeHua/DAPF_LDM/main/assets/results.png" width="95%">
+  <img src="https://raw.githubusercontent.com/papercodeHua/DAPF_LDM/main/result/exp_1/fig2.png" width="95%">
 </div>
 
 DAPF-LDM (ours) effectively avoids anatomical hallucinations, preserves patient-specific topology, and accurately renders hypometabolism in critical regions (e.g., Precuneus).
@@ -169,4 +169,3 @@ For questions about the code, feel free to open an issue or email: your_email@ex
 ## 6. License
 
 This repository is licensed under the MIT License.
-```
