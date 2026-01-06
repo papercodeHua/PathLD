@@ -36,7 +36,7 @@ Prerequisites: Python 3.8+, PyTorch 1.12+ (CUDA recommended).
 ```bash
 pip install -r requirements.txt
 
-## Directory Structure
+##  Directory Structure
 
 To store the dataset, preprocessing masks, checkpoints, and result logs, the directory structure must be organized in the following way:
 
@@ -81,7 +81,7 @@ Users can modify the settings in utils/config.py to specify configurations (batc
 Generate ROI binary masks from the atlas file:
 python tools/split_atlas.py --input ./datas/HarvardOxford-sub-maxprob-thr0-1mm_aligned.nii.gz --output ./datas/atlas_masks/
 
-3.1 Stage I: Component Pre-training
+### 3.1 Stage I: Component Pre-training
 Before training the diffusion model, auxiliary components must be trained.
 1. Train 3D AAE (Latent Representation)
 code
