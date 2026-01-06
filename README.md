@@ -1,4 +1,3 @@
-```markdown
 # DAPF-LDM: Diagnosis-Aware Latent Diffusion for Pathology-Focused MRI-to-PET Synthesis
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -39,7 +38,6 @@ Requirements: Python 3.8+, PyTorch 1.12+ (CUDA recommended).
 
 ```bash
 pip install -r requirements.txt
-```
 
 ### Directory Structure
 
