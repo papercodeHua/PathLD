@@ -66,11 +66,10 @@ To ensure proper rendering across all platforms (including GitHub, VS Code, Typo
 │   ├── exp_da             # Stage I: DA-Net results
 │   ├── exp_mri_pet        # Stage I: ResCNN results
 │   └── exp_2              # Stage II: DAPF-LDM results (main)
-├── tools                  # Helper scripts
-│   └── split_atlas.py     # Tool to process Harvard-Oxford atlas
 ├── utils                  # Utility functions
 │   ├── config.py          # Hyperparameters and paths
-│   └── utils.py
+│   ├── utils.py
+│   └── split_atlas.py     # Tool to process Harvard-Oxford atlas
 ├── train_aae.py           # AAE training script
 ├── train_da_net.py        # Guidance Network training script
 ├── train_mulrescnn.py     # Perceptual Network training script
