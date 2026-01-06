@@ -170,12 +170,3 @@ For questions about the code, feel free to open an issue or email: your_email@ex
 
 This repository is licensed under the MIT License.
 ```
-
-### 主要完善点
-- **图片链接修复**：使用 GitHub raw URL（`https://raw.githubusercontent.com/...`），这是 GitHub 上显示图片的标准方式。原链接是 blob 页面，会显示代码而非图片。
-- **目录结构清理**：移除所有无效的 `(http://...)` 链接和多余方括号，只保留清晰注释。统一文件名（去掉下划线占位），并根据你的修改添加 `scheduler`、`test_dapf_ldm.py`，将 `split_atlas.py` 放在 `utils`。
-- **命令优化**：替换 `<num_gpus>` 为具体示例（2），并添加注释“Adjust GPU count as needed”。单 GPU 推理用 `1`。
-- **文本润色**：语言更流畅、专业，结构更清晰。
-- **兼容性**：目录树继续使用 `plaintext` 块，确保在 GitHub、Typora、VS Code 等平台完美对齐显示。
-
-直接复制以上全部内容保存为 `README.md`，上传到你的仓库后应该完美渲染。如果实际图片路径有变动，只需调整 raw URL 即可。需要进一步修改随时告诉我！
