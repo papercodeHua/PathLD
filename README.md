@@ -77,6 +77,7 @@ To ensure proper rendering across all platforms (including GitHub, VS Code, Typo
 ├── train_da_net.py        # Guidance Network training script
 ├── train_mulrescnn.py     # Perceptual Network training script
 ├── train_dapf_ldm.py      # Main LDM training script
+└── test_dapf_ldm.py      # Main LDM test script
 └── README.md
 ```
 
@@ -100,28 +101,28 @@ Pre-train the auxiliary components before the main diffusion model.
 
    ```bash
    # Set phase="train" in utils/config.py
-   python train_aae.py
+  torchrun --nproc_per_node=<num_gpus> train_aae.py
    ```
 
 2. Encode PET data to latent space
 
    ```bash
    # Set phase="encoding" in utils/config.py
-   python train_aae.py
+   torchrun --nproc_per_node=<num_gpus> train_aae.py
    ```
 
 3. Train Diagnosis-Aware Network (DA-Net)
 
    ```bash
    # Uses DDP (recommended: multiple GPUs)
-   torchrun --nproc_per_node=2 train_da_net.py
+   torchrun --nproc_per_node=<num_gpus> train_da_net.py
    ```
 
 4. Train Perceptual Loss Network (MultiModal ResCNN)
 
    ```bash
    # Uses DDP
-   torchrun --nproc_per_node=2 train_mulrescnn.py
+   torchrun --nproc_per_node=<num_gpus> train_mulrescnn.py
    ```
 
 ### 3.2 Stage II: DAPF-LDM Training
@@ -130,7 +131,7 @@ Train the main latent diffusion model (with DAPF block and Fusion Loss):
 
 ```bash
 # Uses DDP (recommended: 2+ GPUs)
-torchrun --nproc_per_node=2 train_dapf_ldm.py
+torchrun --nproc_per_node=<num_gpus> train_dapf_ldm.py
 ```
 
 ### 3.3 Inference & Evaluation
@@ -138,7 +139,7 @@ torchrun --nproc_per_node=2 train_dapf_ldm.py
 Generate synthetic PET images on the test set and compute metrics (global: PSNR/SSIM; lesion-specific: ROI-MAE):
 
 ```bash
-torchrun --nproc_per_node=1 test_dapf_ldm.py
+torchrun --nproc_per_node=<num_gpus> test_dapf_ldm.py
 ```
 
 Results will be saved as CSV files in the corresponding experiment folder (e.g., `result/exp_2/test.csv`).
