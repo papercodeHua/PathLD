@@ -36,7 +36,7 @@ Prerequisites: Python 3.8+, PyTorch 1.12+ (CUDA recommended).
 ```bash
 pip install -r requirements.txt
 
-##  Directory Structure
+### Directory Structure
 
 To store the dataset, preprocessing masks, checkpoints, and result logs, the directory structure must be organized in the following way:
 
