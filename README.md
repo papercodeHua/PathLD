@@ -19,7 +19,7 @@ This repository contains the official PyTorch implementation of the paper **DAPF
 The training pipeline of our proposed model is shown below:
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/papercodeHua/DAPF_LDM/main/result/exp_1/fig1.png" width="95%">
+  <img src="https://github.com/papercodeHua/DAPF_LDM/blob/main/result/exp_1/fig1.png" width="95%">
 </div>
 
 MRI-to-PET synthesis often fails to capture disease-specific hypometabolism patterns, limiting its clinical utility for Alzheimer's disease (AD) diagnosis. To address this, we propose **DAPF-LDM**, a Diagnosis-Aware Latent Diffusion Model.
@@ -146,7 +146,7 @@ Results will be saved as CSV files in the corresponding experiment folder (e.g.,
 Qualitative comparison with competing methods:
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/papercodeHua/DAPF_LDM/main/result/exp_1/fig2.png" width="95%">
+  <img src="https://github.com/papercodeHua/DAPF_LDM/blob/main/result/exp_1/fig2.png" width="95%">
 </div>
 
 DAPF-LDM (ours) effectively avoids anatomical hallucinations, preserves patient-specific topology, and accurately renders hypometabolism in critical regions (e.g., Precuneus).
