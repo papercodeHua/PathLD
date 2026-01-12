@@ -284,12 +284,15 @@ class DAPFBlock(nn.Module):
         cond_struct = self.struct_extractor(Z)  # Structure [B, C/2, D, H, W]
         cond_noise = self.noise_extractor(Z)    # Noise [B, C/2, D, H, W]
         
-        # Orthogonality Loss 
         s = cond_struct.flatten(2)
         n = cond_noise.flatten(2)
-        orthogonal_term = torch.einsum('bcl,bcl->bc', s, n).abs().mean() / (D * H * W)
-        mse_separate = F.mse_loss(cond_struct, cond_noise) 
-        ortho_loss = config.lambda_ortho * (mse_separate + orthogonal_term)
+        
+        cos_sim = F.cosine_similarity(s, n, dim=2, eps=1e-8)
+        orthogonal_term = cos_sim.abs().mean()
+    
+        
+        ortho_loss = config.lambda_ortho * orthogonal_term
+        
         
         # Use structural component for reconstruction 
         Z = self.struct_up(cond_struct)
@@ -334,4 +337,5 @@ class DAPFBlock(nn.Module):
         
         total_reg_loss = reg_loss + ortho_loss
         
+
         return region_features, spatial_weights, Z_out, total_reg_loss
