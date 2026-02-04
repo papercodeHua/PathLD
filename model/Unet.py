@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from utils.config import config
 from inspect import isfunction
-from model.blocks import GroupNorm, Upsample, Downsample, ResidualBlock, Swish, DAPFBlock 
+from model.blocks import GroupNorm, Upsample, Downsample, ResidualBlock, Swish, PFBlock 
 import nibabel as nib
 import numpy as np
 import os
@@ -153,8 +153,8 @@ class UNet(nn.Module):
         # Class Label Embedding 
         self.label_emb = nn.Embedding(config.num_classes, time_dim)
         
-        # DAPF Block (Diagnosis-Aware Pathology-Focused)
-        self.DAPFBlock = DAPFBlock(
+        # PF Block ( Pathology-Focused)
+        self.PFBlock = PFBlock(
             num_regions=config.num_regions,
             in_channels=config.in_channels,
             prior_weights=config.prior_weights,
@@ -231,9 +231,9 @@ class UNet(nn.Module):
         # 1. Condition Extraction (Cond-Net) 
         cond = self.condition(y)
 
-        # 2. DAPF Modulation 
+        # 2. PF Modulation 
         # Returns: region_feats, weights, z_out (modulated feature), reg_loss
-        _, _, z, reg_loss = self.DAPFBlock(cond, self.masks, label, ages)
+        _, _, z, reg_loss = self.PFBlock(cond, self.masks, label, ages)
         
         # 3. Lesion Guidance Map B Construction 
         D, H, W = z.shape[2:]
@@ -304,4 +304,5 @@ class EMA:
         self.step += 1
 
     def reset_parameters(self, ema_model, model):
+
         ema_model.load_state_dict(model.state_dict())
