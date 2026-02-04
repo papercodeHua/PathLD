@@ -1,9 +1,9 @@
-# DAPF-LDM: Diagnosis-Aware Latent Diffusion for Pathology-Focused MRI-to-PET Synthesis
+# PALM-Diff: Pathology-Focused Latent Diffusion Model for Brain MRI to PET Synthesis
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Framework: PyTorch](https://img.shields.io/badge/Framework-PyTorch-orange.svg)](https://pytorch.org/)
 
-This repository contains the official PyTorch implementation of the paper **DAPF-LDM: Diagnosis-Aware Latent Diffusion for Pathology-Focused MRI-to-PET Synthesis**.
+This repository contains the official PyTorch implementation of the paper **PALM-Diff: Pathology-Focused Latent Diffusion Model for Brain MRI to PET Synthesis**.
 
 ## Table of Contents
 
