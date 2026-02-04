@@ -294,4 +294,5 @@ def train_LDM(rank: int, local_rank: int):
 if __name__ == '__main__':
     seed_torch()
     local_rank, rank = setup_distributed()
+
     train_LDM(rank, local_rank)
