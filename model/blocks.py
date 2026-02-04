@@ -60,10 +60,10 @@ class ResidualBlock(nn.Module):
             return x + self.block(x)
 
 # -------------------------------------------------------------------------
-# Diagnosis-Aware Pathology-Focused (DAPF) Block
+# Pathology-Focused (PF) Block
 # -------------------------------------------------------------------------
 
-class DAPFBlock(nn.Module):
+class PFBlock(nn.Module):
     def __init__(self, 
                  num_regions: int, 
                  in_channels: int,
@@ -86,7 +86,7 @@ class DAPFBlock(nn.Module):
             use_multi_kernel: Whether to use multi-kernel MMD 
             fusion_gamma: Decay factor for feature fusion 
         """
-        super(DAPFBlock, self).__init__()
+        super(PFBlock, self).__init__()
         
         self.num_regions = num_regions
         self.in_channels = in_channels
@@ -372,4 +372,5 @@ class DAPFBlock(nn.Module):
         total_reg_loss = reg_loss + ortho_loss
         
         return region_features, spatial_weights, Z_out, total_reg_loss
+
 
