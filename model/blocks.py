@@ -211,6 +211,57 @@ class PFBlock(nn.Module):
             
             return term1 + term2 + term3
 
+    def _subsample_equal(self, X: torch.Tensor, Y: torch.Tensor):
+        """Return equal-sized subsamples (without replacement)."""
+        m = min(X.size(0), Y.size(0))
+        if m <= 0:
+            return None, None
+        idx_x = torch.randperm(X.size(0), device=X.device)[:m]
+        idx_y = torch.randperm(Y.size(0), device=Y.device)[:m]
+        return X[idx_x], Y[idx_y]
+    
+    def compute_mmd_biased(self, X: torch.Tensor, Y: torch.Tensor) -> torch.Tensor:
+        """
+        Biased empirical MMD^2 to match the paper equation with 1/|X|^2 sums
+        (includes diagonal terms).
+        """
+        if X.size(0) == 0 or Y.size(0) == 0:
+            return torch.tensor(0.0, device=X.device)
+    
+        def _mmd_single_sigma(sig: float):
+            XX = torch.cdist(X, X).pow(2) / (2 * sig**2)
+            YY = torch.cdist(Y, Y).pow(2) / (2 * sig**2)
+            XY = torch.cdist(X, Y).pow(2) / (2 * sig**2)
+            k_XX = torch.exp(-XX)
+            k_YY = torch.exp(-YY)
+            k_XY = torch.exp(-XY)
+            return k_XX.mean() + k_YY.mean() - 2.0 * k_XY.mean()
+    
+        if self.use_multi_kernel:
+            vals = [ _mmd_single_sigma(s) for s in self.sigma_list ]
+            return torch.stack(vals).mean()
+        else:
+            return _mmd_single_sigma(self.rbf_sigma)
+    
+    def compute_mmd_balanced(self, X: torch.Tensor, Y: torch.Tensor, n_repeat: int = 1) -> torch.Tensor:
+        """
+        Balanced MMD^2: subsample both sets to m=min(|X|,|Y|) before computing MMD.
+        Optionally average multiple random subsamples for lower variance.
+        """
+        if X.size(0) == 0 or Y.size(0) == 0:
+            return torch.tensor(0.0, device=X.device)
+    
+        outs = []
+        for _ in range(max(1, n_repeat)):
+            Xb, Yb = self._subsample_equal(X, Y)
+            if Xb is None or Yb is None:
+                outs.append(torch.tensor(0.0, device=X.device))
+            else:
+                # If you prefer the previous UNBIASED estimator, replace with:
+                # outs.append(self.compute_mmd(Xb, Yb))
+                outs.append(self.compute_mmd_biased(Xb, Yb))
+        return torch.stack(outs).mean()
+        
     def compute_spatial_weights(self, region_features: torch.Tensor, 
                                 valid_masks: List, masks: torch.Tensor,
                                 labels: torch.Tensor, ages: torch.Tensor,
@@ -221,6 +272,7 @@ class PFBlock(nn.Module):
         """
         B, K, feat_dim = region_features.shape
         device = region_features.device
+        computed_any = False
         
         D_mmd = torch.zeros(K).to(device)
         max_mmd = torch.tensor(1e-6).to(device)
@@ -246,27 +298,24 @@ class PFBlock(nn.Module):
                 if ad_feats.size(0) == 0 or mci_feats.size(0) == 0 or cn_feats.size(0) == 0:
                     continue
                 
-                # 1. AD vs CN
-                mmd_ad_cn = self.compute_mmd(ad_feats, cn_feats)
-                # 2. MCI vs CN (Missing in original code)
-                mmd_mci_cn = self.compute_mmd(mci_feats, cn_feats) 
-                # 3. AD vs MCI
-                mmd_ad_mci = self.compute_mmd(ad_feats, mci_feats)
+                mmd_ad_cn  = self.compute_mmd_balanced(ad_feats, cn_feats, n_repeat=1)
+                mmd_mci_cn = self.compute_mmd_balanced(mci_feats, cn_feats, n_repeat=1)
+                mmd_ad_mci = self.compute_mmd_balanced(ad_feats, mci_feats, n_repeat=1)
                 
                 # Total Distributional Shift: Sum of all pairwise distances
                 D_mmd[k] = mmd_ad_cn + mmd_mci_cn + mmd_ad_mci
+                computed_any = True
                 
                 if D_mmd[k] > max_mmd: max_mmd = D_mmd[k]
             
-            # Normalize Data-driven Evidence
-            normalized_mmd = (D_mmd / max_mmd.clamp(min=1e-6)).clamp(min=0.0)
-            
-            # Alignment Loss (KL Divergence) 
-            # Regularizes learnable prior (pi_k) towards data-driven MMD distribution.
-            p = F.softmax(self.prior_weights[:K], dim=0)
-            q = F.softmax(normalized_mmd, dim=0)
-            # Symmetric KL Divergence for stability
-            reg_loss = 0.5 * F.kl_div(p.log(), q, reduction='batchmean') + 0.5 * F.kl_div(q.log(), p, reduction='batchmean')
+            if computed_any:
+                normalized_mmd = (D_mmd / max_mmd.clamp(min=1e-6)).clamp(min=0.0)
+                p = F.softmax(self.prior_weights[:K], dim=0)
+                q = F.softmax(normalized_mmd, dim=0)
+                reg_loss = 0.5 * F.kl_div(p.log(), q, reduction='batchmean') + 0.5 * F.kl_div(q.log(), p, reduction='batchmean')
+            else:
+                normalized_mmd = torch.zeros(K, device=device)
+                reg_loss = torch.tensor(0.0, device=device)
         else:
             # If no labels (inference), rely solely on Prior
             normalized_mmd = torch.zeros(K).to(device)
@@ -372,5 +421,6 @@ class PFBlock(nn.Module):
         total_reg_loss = reg_loss + ortho_loss
         
         return region_features, spatial_weights, Z_out, total_reg_loss
+
 
 
