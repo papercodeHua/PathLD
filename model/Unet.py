@@ -196,7 +196,7 @@ class UNet(nn.Module):
         masks_resized = F.interpolate(self.masks.unsqueeze(1), size=(D, H, W), mode='nearest').squeeze(1)
 
         # Use learnable prior weights (softmax normalized) 
-        pw_live = torch.softmax(self.DAPFBlock.prior_weights[:K], dim=0)     
+        pw_live = torch.softmax(self.PFBlock.prior_weights[:K], dim=0)     
 
         B_roi = torch.einsum('kdhw,k->dhw', masks_resized, pw_live).unsqueeze(0).unsqueeze(0)
         B_roi = B_roi / (B_roi.amax(dim=(2,3,4), keepdim=True) + 1e-6)                    
@@ -306,3 +306,4 @@ class EMA:
     def reset_parameters(self, ema_model, model):
 
         ema_model.load_state_dict(model.state_dict())
+
