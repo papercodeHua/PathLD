@@ -4,7 +4,7 @@
 [![Framework: PyTorch](https://img.shields.io/badge/Framework-PyTorch-red.svg)]()
 
 <p align="center">
-  <img src="assets/main_figure.png" alt="PathLD framework" width="100%">
+  <img src="result/fig1.png" alt="PathLD framework" width="100%">
 </p>
 
 <p align="center">
