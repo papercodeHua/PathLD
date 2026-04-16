@@ -5,7 +5,6 @@
 
 This repository provides the PyTorch implementation of **PathLD**, a pathology-focused latent diffusion framework for brain MRI-to-PET synthesis. The model is designed to improve structural-metabolic consistency, enhance sensitivity to pathology-relevant regions, and suppress decoding-induced metabolic artifacts.
 
-> Repository note: the repository name remains `PALM_Diff`, while the method name used in the paper is **PathLD**.
 
 ## Overview
 
@@ -151,7 +150,7 @@ If you use this code in your research, please cite your paper here after publica
 @article{pathld2026,
   title   = {PathLD: Pathology-Focused Latent Diffusion for Brain MRI-to-PET Synthesis},
   author  = {Author One and Author Two and Author Three},
-  journal = {IEEE Transactions on Medical Imaging},
+  journal = {xxx},
   year    = {2026}
 }
 ```
