@@ -117,18 +117,21 @@ This step generates PET latent representations used by the diffusion model.
 
 ### Step 3: Train the MRI diagnosis guidance network
 
+```bash
 torchrun --nproc_per_node=<num_gpus> train_diagnosis_guidance.py
+```
+
 
 ### Step 4: Train the multimodal perceptual network
 
 ```bash
-torchrun --nproc_per_node=<num_gpus> train_mul_res_cnn.py
+torchrun --nproc_per_node=<num_gpus> train_multimodal_diagnosis.py
 ```
 
 ### Step 5: Train PathLD
 
 ```bash
-torchrun --nproc_per_node=<num_gpus> train_palm_diff.py
+torchrun --nproc_per_node=<num_gpus> train_pathld.py
 ```
 
 ## Inference and Evaluation
@@ -136,7 +139,7 @@ torchrun --nproc_per_node=<num_gpus> train_palm_diff.py
 After training, run inference and metric evaluation on the test set:
 
 ```bash
-torchrun --nproc_per_node=<num_gpus> test_palm_diff.py
+torchrun --nproc_per_node=<num_gpus> test_pathld.py
 ```
 
 Predictions and quantitative results will be saved under the corresponding folder in `result/`.
