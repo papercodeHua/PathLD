@@ -1,10 +1,21 @@
-# PathLD
+# PathLD: Pathology-Focused Latent Diffusion for Brain MRI-to-PET Synthesis
 
-Official PyTorch implementation of **PathLD: Pathology-Focused Latent Diffusion for Brain MRI-to-PET Synthesis**.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Framework: PyTorch](https://img.shields.io/badge/Framework-PyTorch-red.svg)]()
+
+<p align="center">
+  <img src="assets/main_figure.png" alt="PathLD framework" width="100%">
+</p>
+
+<p align="center">
+  Official PyTorch implementation of <b>PathLD</b> for brain MRI-to-PET synthesis.
+</p>
+
+---
 
 ## Contents
 
-- [Requirements](#requirements)
+- [Environment](#environment)
 - [Repository Structure](#repository-structure)
 - [Data Preparation](#data-preparation)
 - [Configuration](#configuration)
@@ -14,9 +25,11 @@ Official PyTorch implementation of **PathLD: Pathology-Focused Latent Diffusion 
 - [Citation](#citation)
 - [Contact](#contact)
 
-## Requirements
+---
 
-We recommend using Python 3.10 with a dedicated conda environment.
+## Environment
+
+We recommend using Python 3.10 with a clean conda environment.
 
 ```bash
 conda create -n pathld python=3.10 -y
