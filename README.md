@@ -1,35 +1,44 @@
-# PathLD: Pathology-Focused Latent Diffusion for Brain MRI-to-PET Synthesis
+# PathLD
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Framework: PyTorch](https://img.shields.io/badge/Framework-PyTorch-orange.svg)](https://pytorch.org/)
+Official PyTorch implementation of **PathLD: Pathology-Focused Latent Diffusion for Brain MRI-to-PET Synthesis**.
 
-This repository provides the PyTorch implementation of **PathLD**, a pathology-focused latent diffusion framework for brain MRI-to-PET synthesis. The model is designed to improve structural-metabolic consistency, enhance sensitivity to pathology-relevant regions, and suppress decoding-induced metabolic artifacts.
+## Contents
 
+- [Requirements](#requirements)
+- [Repository Structure](#repository-structure)
+- [Data Preparation](#data-preparation)
+- [Configuration](#configuration)
+- [Training](#training)
+- [Inference and Evaluation](#inference-and-evaluation)
+- [Results](#results)
+- [Citation](#citation)
+- [Contact](#contact)
 
-## Overview
+## Requirements
 
-Brain MRI-to-PET synthesis is clinically valuable for neurodegenerative disease assessment, but existing methods often struggle to preserve structural-metabolic consistency and to capture subtle pathology-related metabolic abnormalities. PathLD addresses these issues through three key components:
+We recommend using Python 3.10 with a dedicated conda environment.
 
-- **Pathology-Focused condition generation**, which integrates MRI-derived cues with clinical and region-level priors.
-- **Latent diffusion in PET latent space**, which improves 3D generation efficiency and stabilizes synthesis.
-- **Hybrid-order perceptual regularization**, which constrains decoded PET images from both texture and multimodal semantic perspectives.
+```bash
+conda create -n pathld python=3.10 -y
+conda activate pathld
+pip install -r requirements.txt
 
 ## Repository Structure
 
 ```text
-PALM_Diff/
-├── datas/                      # Data root
-│   └── FDG/                    # MRI/PET data and encoded PET latents
-├── dataset/                    # Dataset definition
-├── model/                      # AAE, guidance network, UNet, blocks
-├── scheduler/                  # Diffusion scheduler
-├── utils/                      # Configuration and utilities
-├── result/                     # Checkpoints, logs, and outputs
-├── train_aae.py                # Train PET autoencoder / encode PET latents
-├── train_da_net.py             # Train MRI diagnosis guidance network
-├── train_mul_res_cnn.py        # Train multimodal perceptual network
-├── train_palm_diff.py          # Train PathLD
-├── test_palm_diff.py           # Inference and evaluation
+PathLD/
+├── datas/
+│   └── FDG/                            # MRI/PET data and PET latent codes
+├── dataset/                            # Dataset definition
+├── model/                              # Model components
+├── scheduler/                          # Diffusion scheduler
+├── utils/                              # Configuration and utility functions
+├── result/                             # Checkpoints, logs, and generated results
+├── train_aae.py                        # Train PET autoencoder / encode PET latents
+├── train_diagnosis_guidance.py         # Train MRI diagnosis guidance network
+├── train_multimodal_diagnosis.py       # Train multimodal diagnosis network
+├── train_pathld.py                     # Train PathLD
+├── test_pathld.py                      # Inference and evaluation
 ├── requirements.txt
 └── README.md
 ```
@@ -64,11 +73,9 @@ The metadata CSV should contain the information required by the codebase, such a
 
 ### ROI mask preparation
 
-If you use the Harvard-Oxford atlas, generate ROI masks before training:
-
-```bash
-python utils/atlas_split.py --input ./datas/HarvardOxford-sub-maxprob-thr0-1mm_aligned.nii.gz --output ./datas/atlas_masks/
-```
+python utils/atlas_split.py \
+  --input ./datas/HarvardOxford-sub-maxprob-thr0-1mm_aligned.nii.gz \
+  --output ./datas/atlas_masks/
 
 ## Environment Setup
 
@@ -110,9 +117,7 @@ This step generates PET latent representations used by the diffusion model.
 
 ### Step 3: Train the MRI diagnosis guidance network
 
-```bash
-torchrun --nproc_per_node=<num_gpus> train_da_net.py
-```
+torchrun --nproc_per_node=<num_gpus> train_diagnosis_guidance.py
 
 ### Step 4: Train the multimodal perceptual network
 
