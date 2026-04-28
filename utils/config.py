@@ -54,7 +54,7 @@ class ProjectConfig:
     # Loss Weights
     Lambda: float = 100.0       # AAE L1 recon weight
     lambda_ortho: float = 0.01  # Orthogonal decomposition loss weight
-    lambda_reg: float = 0.1     # DAPF regularization weight (MMD + Alignment)
+    lambda_reg: float = 0.3     # DAPF regularization weight (MMD + Alignment)
     lambda_fusion: float = 0.5  # Cross-Modal Fusion-Perceptual loss weight
 
     # Conditioning Strategies
