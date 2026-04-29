@@ -37,7 +37,7 @@ class ProjectConfig:
     rbf_sigma: float = 1.0      # Sigma for Gaussian RBF kernel in MMD
     alpha: float = 0.2          # Age modulation scaling factor
     use_multi_kernel: bool = False # Whether to use multi-kernel MMD
-    fusion_gamma: float = 0.1   # Learnable scalar init for Residual Gated Modulation
+    fusion_gamma: float = 0.2   # Learnable scalar init for Residual Gated Modulation
     
     # -------------------------------------------------------------------------
     # Training Hyperparameters 
