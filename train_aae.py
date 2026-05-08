@@ -45,7 +45,7 @@ def train_AAE(rank, local_rank):
 
     device = torch.device(f"cuda:{local_rank}")
     # Prepare result directory and CSVs (only on rank 0)
-    result_dir = os.path.join("result", config.exp)
+    result_dir = os.path.join(config.exp_root, config.exp_aae)
     if rank == 0:
         os.makedirs(result_dir, exist_ok=True)
         loss_csv = os.path.join(result_dir, "loss_curve.csv")
