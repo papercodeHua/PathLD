@@ -295,8 +295,22 @@ class PFBlock(nn.Module):
                 mci_feats = current_feats[current_labels == 1]
                 ad_feats = current_feats[current_labels == 2]
                 
-                if ad_feats.size(0) == 0 or mci_feats.size(0) == 0 or cn_feats.size(0) == 0:
+                pairs = [
+                    (ad_feats, cn_feats),
+                    (mci_feats, cn_feats),
+                    (ad_feats, mci_feats),
+                ]
+                
+                mmd_vals = []
+                for A, B in pairs:
+                    if A.size(0) > 0 and B.size(0) > 0:
+                        mmd_vals.append(self.compute_mmd_balanced(A, B, n_repeat=1))
+                
+                if len(mmd_vals) == 0:
                     continue
+                
+                D_mmd[k] = torch.stack(mmd_vals).sum()
+                computed_any = True
                 
                 mmd_ad_cn  = self.compute_mmd_balanced(ad_feats, cn_feats, n_repeat=1)
                 mmd_mci_cn = self.compute_mmd_balanced(mci_feats, cn_feats, n_repeat=1)
