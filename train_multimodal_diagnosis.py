@@ -9,8 +9,8 @@ from torch.utils.data import DataLoader, DistributedSampler
 import torch.nn.functional as F
 from tqdm import tqdm
 from utils.utils import *
-from model.multi_modal_res_cnn_3d import MultiModalResCNN3D
-from dataset.ADNI_dataset import RealMultiModalDataset
+from model.multimodal_diagnosis_net import MultiModalResCNN3D
+from dataset.adni_dataset import RealMultiModalDataset
 from utils.config import config
 import csv
 import warnings
@@ -46,7 +46,7 @@ def specificity(y_true, y_pred, classes):
 def train_ResCNN(rank, local_rank):
     device = torch.device(f"cuda:{local_rank}")
 
-    result_dir = os.path.join("result", config.exp_mri_pet)  
+    result_dir = os.path.join(config.exp_root, config.exp_mri_pet)
     if rank == 0:
         os.makedirs(result_dir, exist_ok=True)
         loss_csv = os.path.join(result_dir, "loss_curve.csv")
@@ -66,8 +66,8 @@ def train_ResCNN(rank, local_rank):
     )
 
 
-    if config.CHECKPOINT_ResCNN and os.path.exists(config.CHECKPOINT_ResCNN):
-        load_checkpoint(config.CHECKPOINT_ResCNN, model, optimizer, config.learning_rate, device)
+    if config.CHECKPOINT_Phi and os.path.exists(config.CHECKPOINT_Phi):
+        load_checkpoint(config.CHECKPOINT_Phi, model, optimizer, config.learning_rate, device)
 
     class_counts = torch.tensor([277, 427, 144], dtype=torch.float32)
     class_weights = 1.0 / (class_counts / class_counts.sum())
@@ -137,10 +137,10 @@ def train_ResCNN(rank, local_rank):
             all_probs = []
 
             val_ds = RealMultiModalDataset(
-                root_MRI=config.test_FDG_MRI,   
-                root_FDG=config.test_FDG,   
+                root_MRI=config.val_FDG_MRI,
+                root_FDG=config.val_FDG,
                 stage="val",
-                csv_path=config.test_FDG_CSV  
+                csv_path=config.val_FDG_CSV,
             )
             val_loader = DataLoader(
                 val_ds,
@@ -190,7 +190,7 @@ def train_ResCNN(rank, local_rank):
 
             if acc > best_acc:
                 best_acc = acc
-                save_checkpoint(model, optimizer, filename=config.CHECKPOINT_ResCNN)
+                save_checkpoint(model, optimizer, filename=config.CHECKPOINT_Phi)
                 no_improve = 0
             else:
                 no_improve += 1
