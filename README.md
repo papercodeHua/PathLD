@@ -35,6 +35,7 @@ We recommend using Python 3.10 with a clean conda environment.
 conda create -n pathld python=3.10 -y
 conda activate pathld
 pip install -r requirements.txt
+```
 
 ## Repository Structure
 
