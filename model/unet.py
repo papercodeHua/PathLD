@@ -38,6 +38,70 @@ class TimeEmbedding(nn.Module):
         pos_emb = pos_emb.view(*shape, self.dim)
         return pos_emb
 
+class Block(nn.Module):
+    def __init__(self, dim, dim_out, groups=32, dropout=0):
+        super().__init__()
+        self.block = nn.Sequential(
+            nn.GroupNorm(groups, dim),
+            Swish(),
+            nn.Dropout(dropout) if dropout != 0 else nn.Identity(),
+            nn.Conv3d(dim, dim_out, 3, padding=1)
+        )
+
+    def forward(self, x):
+        return self.block(x)
+
+class ResnetBlock(nn.Module):
+    def __init__(self, dim, dim_out, time_emb_dim=None, dropout=0, norm_groups=32):
+        super().__init__()
+        self.mlp = nn.Sequential(
+            Swish(),
+            nn.Linear(time_emb_dim, dim_out)
+        ) if exists(time_emb_dim) else None
+
+        self.block1 = Block(dim, dim_out, groups=norm_groups)
+        self.block2 = Block(dim_out, dim_out, groups=norm_groups, dropout=dropout)
+        self.res_conv = nn.Conv3d(
+            dim, dim_out, 1) if dim != dim_out else nn.Identity()
+
+    def forward(self, x, time_emb):
+        h = self.block1(x)
+        if exists(self.mlp):
+            h += self.mlp(time_emb)[:, :, None, None, None]
+        h = self.block2(h)
+        return h + self.res_conv(x)
+
+class SelfAttention(nn.Module):
+    def __init__(self, in_channel, n_head=1, norm_groups=32):
+        super().__init__()
+
+        self.n_head = n_head
+
+        self.norm = nn.GroupNorm(norm_groups, in_channel)
+        self.qkv = nn.Conv3d(in_channel, in_channel * 3, 1, bias=False)
+        self.out = nn.Conv3d(in_channel, in_channel, 1)
+
+    def forward(self, input):
+        batch, channel, height, width, depth = input.shape
+        n_head = self.n_head
+        head_dim = channel // n_head
+
+        norm = self.norm(input)
+        qkv = self.qkv(norm).view(batch, n_head, head_dim * 3, height, width, depth)
+        query, key, value = qkv.chunk(3, dim=2)  # bhdyx
+
+        attn = torch.einsum(
+            "bnchwd, bncyxz -> bnhwdyxz", query, key
+        ).contiguous() / math.sqrt(channel)
+        attn = attn.view(batch, n_head, height, width, depth, -1)
+        attn = torch.softmax(attn, -1)
+        attn = attn.view(batch, n_head, height, width, depth, height, width, depth)
+
+        out = torch.einsum("bnhwdyxz, bncyxz -> bnchwd", attn, value).contiguous()
+        out = self.out(out.view(batch, channel, height, width, depth))
+
+        return out + input
+
 class ResnetBlocWithAttn(nn.Module):
     """
     ResNet Block with optional Self-Attention.
