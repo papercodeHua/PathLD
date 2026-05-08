@@ -12,7 +12,7 @@ from tqdm import tqdm
 from sklearn.metrics import accuracy_score
 from utils.utils import seed_torch, save_checkpoint, load_checkpoint, write_csv_header
 from utils.config import config
-from model.da_net import DA_NET3D  
+from model.diagnosis_guidance_net import DA_NET3D
 from dataset.adni_dataset import ThreeClassDataset
 
 import warnings
