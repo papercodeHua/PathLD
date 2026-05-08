@@ -106,6 +106,41 @@ def train_da_net(rank: int, local_rank: int):
         val_loader = DataLoader(val_ds, batch_size=1, shuffle=False, num_workers=config.numworker, pin_memory=True)
         
         with torch.no_grad():
-            for mri, label, _, _ in tqdm(val_loader, desc="Validation", disable=(rank!=0)):
-                mri = mri.unsqueeze(1).to(device)
-                label = la
+            for mri, label, age, _ in tqdm(val_loader, desc="Validation", disable=(rank!=0)):
+                mri = np.expand_dims(mri, axis=1)
+                mri = torch.tensor(mri).to(device)
+                label = label.to(device)
+
+                scores, saliency_maps = model(mri)  # 无需age_pred for val
+                preds = scores.argmax(dim=1)
+                all_preds.append(preds.cpu().item())
+                all_labels.append(label.cpu().item())
+
+
+        all_preds_tensor = torch.tensor(all_preds, device=device)
+        all_labels_tensor = torch.tensor(all_labels, device=device)
+        dist.all_reduce(all_preds_tensor)
+        dist.all_reduce(all_labels_tensor)
+        all_preds = all_preds_tensor.cpu().numpy()
+        all_labels = all_labels_tensor.cpu().numpy()
+
+        if rank == 0:
+            avg_acc = accuracy_score(all_labels, all_preds)
+            with open(val_csv, 'a', newline='') as f:
+                csv.writer(f).writerow([epoch, round(avg_acc, 3)])
+
+            if avg_acc > best_acc:
+                best_acc = avg_acc
+                save_checkpoint(model, optimizer, filename=config.CHECKPOINT_MCT)
+                no_improve = 0
+            else:
+                no_improve += 1
+                if no_improve >= early_stop_patience:
+                    print(f"Early stopping at epoch {epoch}")
+                    break
+
+if __name__ == '__main__':
+    seed_torch()
+    local_rank, rank = setup_distributed()
+    train_mct(rank, local_rank)
+    cleanup()
