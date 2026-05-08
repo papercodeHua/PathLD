@@ -103,16 +103,16 @@ def train_LDM(rank: int, local_rank: int):
     # B. DA-Net 
     da_net = DA_NET3D().to(device)
     temp_opt_da = optim.Adam(da_net.parameters(), lr=1e-4)
-    load_checkpoint(config.CHECKPOINT_DA, da_net, temp_opt_da, config.learning_rate, device)
+    load_checkpoint(CHECKPOINT_G_diag, da_net, temp_opt_da, config.learning_rate, device)
     da_net.eval()
     for param in da_net.parameters(): param.requires_grad = False
 
     # C. Perceptual Network 
     perceptual_net = MultiModalResCNN3D(num_classes=3).to(device)
-    if os.path.exists(config.CHECKPOINT_ResCNN):
-        checkpoint = torch.load(config.CHECKPOINT_ResCNN, map_location=device)
+    if os.path.exists(CHECKPOINT_Phi):
+        checkpoint = torch.load(CHECKPOINT_Phi, map_location=device)
         perceptual_net.load_state_dict(checkpoint['state_dict'])
-        if rank == 0: print(f"Loaded ResCNN from {config.CHECKPOINT_ResCNN}")
+        if rank == 0: print(f"Loaded ResCNN from {CHECKPOINT_Phi}")
     perceptual_net.eval()
     for param in perceptual_net.parameters(): param.requires_grad = False
     
@@ -202,7 +202,7 @@ def train_LDM(rank: int, local_rank: int):
             
             # C. Total Loss 
             # DAPF Regularization + Fusion + MSE
-            loss = mse_loss + config.lambda_reg * reg_loss + config.lambda_fusion * perc_loss
+            loss = mse_loss + config.lambda_reg * reg_loss + config.lambda_perc * perc_loss
 
             # 6. Optimization 
             opt_unet.zero_grad()
