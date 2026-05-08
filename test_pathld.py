@@ -201,8 +201,7 @@ def run_test(aae, unet, da_model, diffusion, device, rank):
     avg_mae = metrics_tensor[2].item() / total_samples
     avg_mae_roi = metrics_tensor[3].item() / total_samples
     avg_roi_psnr = metrics_tensor[4].item() / total_samples
-    
-    # --- FMD Calculation 
+ 
     if rank == 0:
         feat_real = np.stack(features_real)
         feat_fake = np.stack(features_fake)
