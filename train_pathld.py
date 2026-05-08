@@ -111,8 +111,9 @@ def train_LDM(rank: int, local_rank: int):
     perceptual_net = MultiModalResCNN3D(num_classes=3).to(device)
     if os.path.exists(config.CHECKPOINT_Phi):
         checkpoint = torch.load(config.CHECKPOINT_Phi, map_location=device)
-        perceptual_net.load_state_dict(checkpoint['state_dict'])
-        if rank == 0: print(f"Loaded ResCNN from {config.CHECKPOINT_Phi}")
+        perceptual_net.load_state_dict(checkpoint["state_dict"])
+        if rank == 0:
+            print(f"Loaded Phi from {config.CHECKPOINT_Phi}")
     perceptual_net.eval()
     for param in perceptual_net.parameters(): param.requires_grad = False
     
@@ -144,7 +145,8 @@ def train_LDM(rank: int, local_rank: int):
     epoch_threshold = 1  
 
     for epoch in range(1, config.epochs + 1):
-        if rank == 0: print(f"DAPF-LDM Epoch {epoch}/{config.epochs}")
+        # torchrun --nproc_per_node=<num_gpus> train_pathld.py
+        print(f"PathLD Epoch {epoch}/{config.epochs}")
         
         unet.train()
 
