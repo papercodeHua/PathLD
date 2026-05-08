@@ -56,7 +56,7 @@ def build_and_load_models(device):
         raise FileNotFoundError(f"UNet checkpoint not found: {config.CHECKPOINT_Unet}")
     unet.eval()
 
-    diffusion = Diffusion()
+    diffusion = Diffusion(device=device)
     return aae, unet, da_model, diffusion
 
 def load_selected_masks(dir_path, selected_ids=[2,3,9,10,13,14,19,20]):
