@@ -61,7 +61,10 @@ class DA_NET3D(nn.Module):
         # Weighted sum of features: [B, C, D, H, W] * [K, C, 1, 1, 1] -> [B, K, D, H, W]
         cam_maps = torch.einsum('bcdhw,kc...->bkdhw', features, weights)
         
-        cam_maps = (cam_maps - cam_maps.min()) / (cam_maps.max() - cam_maps.min() + 1e-8)
+        cam_min = cam_maps.amin(dim=(2, 3, 4), keepdim=True)
+        cam_max = cam_maps.amax(dim=(2, 3, 4), keepdim=True)
+        cam_maps = (cam_maps - cam_min) / (cam_max - cam_min + 1e-8)
+        saliency_maps = torch.sigmoid(cam_maps)
         saliency_maps = torch.sigmoid(cam_maps)
 
         saliency_maps = F.interpolate(saliency_maps, size=(160, 192, 160), mode='trilinear', align_corners=False)
