@@ -4,9 +4,8 @@ from typing import Dict
 
 class ProjectConfig:
     """
-    Global Configuration for DAPF-LDM.
-    
-    Paper: DAPF-LDM: Diagnosis-Aware Latent Diffusion for Pathology-Focused MRI-to-PET Synthesis
+    Global configuration for PathLD.
+    Paper: Pathology-Focused Latent Diffusion Model for Brain MRI-to-PET Synthesis.
     """
     # -------------------------------------------------------------------------
     # Hardware & System / 硬件与系统
@@ -16,12 +15,12 @@ class ProjectConfig:
     seed: int = 42            # Random seed
     
     # -------------------------------------------------------------------------
-    # DAPF Block Hyperparameters 
-    # (Diagnosis-Aware Pathology-Focused Block)
+    # PF Block Hyperparameters 
+    # (Pathology-Focused Block)
     # -------------------------------------------------------------------------
     atlas_dir: str = "./datas/atlas_masks/"  # Path to anatomical ROI masks (22 regions)
     num_regions: int = 22     # Harvard-Oxford atlas selected regions
-    in_channels: int = 16     # Channels entering the DAPF block (from Cond-Net)
+    in_channels: int = 16     # Channels entering the PF block (from Cond-Net)
     
     # Anatomical Prior Weights (pi_k) initialized based on literature 
     prior_weights: Dict[int, float] = {
@@ -55,7 +54,7 @@ class ProjectConfig:
     Lambda: float = 100.0       # AAE L1 recon weight
     lambda_ortho: float = 0.01  # Orthogonal decomposition loss weight
     lambda_reg: float = 0.3     # DAPF regularization weight (MMD + Alignment)
-    lambda_fusion: float = 0.5  # Cross-Modal Fusion-Perceptual loss weight
+    lambda_perc: float = 0.5  # Cross-Modal Fusion-Perceptual loss weight
 
     # Conditioning Strategies
     use_saliency: bool = True   # Enable Saliency Map from DA-Net
