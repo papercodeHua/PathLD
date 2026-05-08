@@ -10,6 +10,7 @@ class Diffusion:
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
+        self.device = device if device is not None else torch.device(config.device)
         
         self.beta = self.prepare_noise_schedule().to(config.device)
         self.alpha = 1. - self.beta
@@ -38,7 +39,7 @@ class Diffusion:
         """
         T = self.noise_steps
         n = y.shape[0]
-        x = torch.randn((n, 1, 40, 48, 40), device=config.device)
+        x = torch.randn((n, 1, 40, 48, 40), device = self.device)
 
         with torch.no_grad():
             for t in range(T, 0, -1):
@@ -72,7 +73,7 @@ class Diffusion:
         """
         if seed is not None:
             torch.manual_seed(seed)
-        device = config.device
+        device = self.device
         T = self.noise_steps
         n = y.shape[0]
         x = torch.randn((n, 1, 40, 48, 40), device=device)
