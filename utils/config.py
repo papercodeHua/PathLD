@@ -69,7 +69,7 @@ class ProjectConfig:
     exp_aae: str = "exp_1/"         # Stage I: AAE
     exp_da: str = "exp_da/"         # Stage I: Diagnosis Guidance Network
     exp_mri_pet: str = "exp_mri_pet/" # Stage I: Hybrid-Order Perceptual Loss
-    exp_ldm: str = "exp_2/"         # Stage II: ParhLD (Main)
+    exp_ldm: str = "exp_2/"         # Stage II: PathLD (Main)
     
     # Dataset Paths
     # 1. Raw Data
