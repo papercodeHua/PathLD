@@ -29,7 +29,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # -------------------------------------------------------------------------
-# torchrun --nproc_per_node=<num_gpus> train_dapf_ldm.py
+# torchrun --nproc_per_node=<num_gpus> train_pathld.py
 # -------------------------------------------------------------------------
 
 def setup_distributed():
@@ -203,7 +203,7 @@ def train_LDM(rank: int, local_rank: int):
             perc_loss = compute_rescnn_loss(MRI, decoded_real_pet, decoded_syn_pet, perceptual_net)
             
             # C. Total Loss 
-            # DAPF Regularization + Fusion + MSE
+            # PF regularization + perceptual loss + MSE
             loss = mse_loss + config.lambda_reg * reg_loss + config.lambda_perc * perc_loss
 
             # 6. Optimization 
