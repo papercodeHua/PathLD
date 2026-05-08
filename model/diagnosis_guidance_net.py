@@ -64,8 +64,7 @@ class DA_NET3D(nn.Module):
         cam_min = cam_maps.amin(dim=(2, 3, 4), keepdim=True)
         cam_max = cam_maps.amax(dim=(2, 3, 4), keepdim=True)
         cam_maps = (cam_maps - cam_min) / (cam_max - cam_min + 1e-8)
-        saliency_maps = torch.sigmoid(cam_maps)
-        saliency_maps = torch.sigmoid(cam_maps)
+        saliency_maps = cam_maps
 
         saliency_maps = F.interpolate(saliency_maps, size=(160, 192, 160), mode='trilinear', align_corners=False)
 
