@@ -88,7 +88,7 @@ def train_ResCNN(rank, local_rank):
             root_MRI=config.train_FDG_MRI,   
             root_FDG=config.train_FDG,   
             stage="train",
-            csv_path=config.train_FDG_CSV  #
+            csv_path=config.train_FDG_CSV  
         )
         train_sampler = DistributedSampler(train_ds, shuffle=True)
         loader = DataLoader(
