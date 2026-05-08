@@ -6,26 +6,37 @@ class Diffusion:
     """
     Diffusion Process (DDPM & DDIM).
     """
-    def __init__(self, noise_steps: int = 1000, beta_start: float = 0.0001, beta_end: float = 0.0200):
+    def __init__(
+        self,
+        noise_steps: int = 1000,
+        beta_start: float = 0.0001,
+        beta_end: float = 0.0200,
+        device=None,
+    ):
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
         self.device = device if device is not None else torch.device(config.device)
-        
-        self.beta = self.prepare_noise_schedule().to(config.device)
-        self.alpha = 1. - self.beta
-        self.alpha_hat = torch.cumprod(self.alpha, dim=0) # alpha_bar
-        
+
+        self.beta = self.prepare_noise_schedule().to(self.device)
+        self.alpha = 1.0 - self.beta
+        self.alpha_hat = torch.cumprod(self.alpha, dim=0)
+
         self.alpha_bar = torch.cat(
-            [torch.ones(1, device=self.alpha_hat.device), self.alpha_hat],
-            dim=0
-        ) 
+            [torch.ones(1, device=self.device), self.alpha_hat],
+            dim=0,
+        )
 
     def prepare_noise_schedule(self) -> torch.Tensor:
         return torch.linspace(self.beta_start, self.beta_end, self.noise_steps)
 
     def sample_timesteps(self, n: int) -> torch.Tensor:
-        return torch.randint(low=1, high=self.noise_steps + 1, size=(n,), device=self.device)
+        return torch.randint(
+            low=1,
+            high=self.noise_steps + 1,
+            size=(n,),
+            device=self.device,
+        )
 
     def noise_images(self, x: torch.Tensor, t: torch.Tensor) -> tuple:
         sqrt_alpha_bar = torch.sqrt(self.alpha_bar[t])[:, None, None, None, None]
@@ -43,7 +54,7 @@ class Diffusion:
 
         with torch.no_grad():
             for t in range(T, 0, -1):
-                t_batch = torch.full((n,), t, dtype=torch.long, device=config.device)
+                t_batch = torch.full((n,), t, dtype=torch.long, device=self.device)
 
                 ab_t    = self.alpha_bar[t].view(1,1,1,1,1).expand(n,1,1,1,1)
                 ab_tm1  = self.alpha_bar[t-1].view(1,1,1,1,1).expand(n,1,1,1,1)
