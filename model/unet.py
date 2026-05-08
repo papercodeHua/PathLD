@@ -122,7 +122,7 @@ class ResnetBlocWithAttn(nn.Module):
 
 class UNet(nn.Module):
     """
-    Denoising UNet with DAPF Block conditioning.
+    Denoising UNet with PF Block conditioning.
     """
     def __init__(
         self,
@@ -284,7 +284,7 @@ class UNet(nn.Module):
 
     def forward(self, x, y, time, label=None, ages=None, saliency=None):
         """
-        Forward pass of DAPF-LDM UNet.
+        Forward pass of PathLD UNet.
         x: Noisy Latent [B, 1, D, H, W]
         y: MRI Volume [B, 1, D, H, W]
         time: Timesteps [B]
