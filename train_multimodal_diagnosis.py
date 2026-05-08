@@ -198,6 +198,11 @@ def train_ResCNN(rank, local_rank):
                     print(f"Early stopping at epoch {epoch}")
                     break
 
+        dist.broadcast(stop_flag, src=0)
+
+        if stop_flag.item() == 1:
+            break
+
         dist.barrier()
 
 if __name__ == '__main__':
