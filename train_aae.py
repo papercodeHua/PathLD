@@ -14,7 +14,7 @@ from torch.cuda import amp
 from tqdm import tqdm
 from utils.utils import *
 from model.aae import AAE, Discriminator
-from dataset.ADNI_dataset import OneDataset
+from dataset.adni_dataset import OneDataset
 from utils.config import config
 import csv
 import warnings
@@ -101,9 +101,7 @@ def train_AAE(rank, local_rank):
 
         for FDG, name in tqdm(loader, desc="Training", disable=(rank!=0)):
             # FDG = torch.tensor(np.expand_dims(FDG, 1), device=device)
-            FDG = np.expand_dims(FDG, axis=1)
-            FDG = torch.tensor(FDG)
-            FDG = FDG.to(device)
+            FDG = FDG.unsqueeze(1).float().to(device)
 
 
             with amp.autocast():
@@ -150,9 +148,7 @@ def train_AAE(rank, local_rank):
                                         num_workers=config.numworker, pin_memory=True, drop_last=True)
             with torch.no_grad():
                 for FDG, name in tqdm(val_loader, desc="Validation"):
-                    FDG = np.expand_dims(FDG, axis=1)
-                    FDG = torch.tensor(FDG)
-                    FDG = FDG.to(device)
+                    FDG = FDG.unsqueeze(1).float().to(device)
                
                     decoded = model(FDG)
                     decoded = torch.clamp(decoded,0,1)
