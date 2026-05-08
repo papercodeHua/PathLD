@@ -99,48 +99,52 @@ def train_da_net(rank: int, local_rank: int):
                 csv.writer(f).writerow([epoch, round(avg_loss, 6)])
 
         model.eval()
-        all_preds = []
-        all_labels = []
-        
-        val_ds = ThreeClassDataset(root_MRI=config.val_FDG_MRI, stage="val", csv_path=config.val_FDG_CSV)
-        val_loader = DataLoader(val_ds, batch_size=1, shuffle=False, num_workers=config.numworker, pin_memory=True)
-        
+        local_correct = 0
+        local_total = 0
+
+        val_ds = ThreeClassDataset(
+            root_MRI=config.val_FDG_MRI,
+            stage="val",
+            csv_path=config.val_FDG_CSV,
+        )
+        val_sampler = DistributedSampler(val_ds, shuffle=False, drop_last=False)
+        val_loader = DataLoader(
+            val_ds,
+            batch_size=1,
+            sampler=val_sampler,
+            num_workers=config.numworker,
+            pin_memory=True,
+        )
+
         with torch.no_grad():
-            for mri, label, age, _ in tqdm(val_loader, desc="Validation", disable=(rank!=0)):
-                mri = np.expand_dims(mri, axis=1)
-                mri = torch.tensor(mri).to(device)
+            for mri, label, _, _ in tqdm(val_loader, desc="Validation", disable=(rank != 0)):
+                mri = mri.unsqueeze(1).float().to(device)
                 label = label.to(device)
 
-                scores, saliency_maps = model(mri)  # 无需age_pred for val
-                preds = scores.argmax(dim=1)
-                all_preds.append(preds.cpu().item())
-                all_labels.append(label.cpu().item())
+                scores, _ = model(mri)
+                pred = scores.argmax(dim=1)
 
+                local_correct += (pred == label).sum().item()
+                local_total += label.numel()
 
-        all_preds_tensor = torch.tensor(all_preds, device=device)
-        all_labels_tensor = torch.tensor(all_labels, device=device)
-        dist.all_reduce(all_preds_tensor)
-        dist.all_reduce(all_labels_tensor)
-        all_preds = all_preds_tensor.cpu().numpy()
-        all_labels = all_labels_tensor.cpu().numpy()
+        stat = torch.tensor([local_correct, local_total], dtype=torch.float32, device=device)
+        dist.all_reduce(stat, op=dist.ReduceOp.SUM)
+
+        avg_acc = stat[0].item() / max(stat[1].item(), 1.0)
 
         if rank == 0:
-            avg_acc = accuracy_score(all_labels, all_preds)
-            with open(val_csv, 'a', newline='') as f:
-                csv.writer(f).writerow([epoch, round(avg_acc, 3)])
+            with open(val_csv, "a", newline="") as f:
+                csv.writer(f).writerow([epoch, round(avg_acc, 4)])
 
             if avg_acc > best_acc:
                 best_acc = avg_acc
-                save_checkpoint(model, optimizer, filename=config.CHECKPOINT_MCT)
+                save_checkpoint(model, optimizer, filename=config.CHECKPOINT_G_diag)
                 no_improve = 0
             else:
                 no_improve += 1
-                if no_improve >= early_stop_patience:
-                    print(f"Early stopping at epoch {epoch}")
-                    break
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     seed_torch()
     local_rank, rank = setup_distributed()
-    train_mct(rank, local_rank)
+    train_da_net(rank, local_rank)
     cleanup()
