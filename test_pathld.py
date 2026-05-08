@@ -21,7 +21,7 @@ from scheduler.linear_scheduler import Diffusion
 from dataset.adni_dataset import TwoDataset, crop
 
 # -------------------------------------------------------------------------
-# torchrun --nproc_per_node=<num_gpus> test_dapf_ldm.py
+# torchrun --nproc_per_node=<num_gpus> test_pathld.py
 # -------------------------------------------------------------------------
 
 def setup_distributed():
@@ -44,7 +44,7 @@ def build_and_load_models(device):
 
     # DA-Net (Guidance)
     da_model = DA_NET3D().to(device)
-    load_checkpoint(config.CHECKPOINT_DA, da_model, opt_dummy, 0, device)
+    load_checkpoint(config.CHECKPOINT_G_diag, da_model, opt_dummy, 0, device)
     da_model.eval()
 
     # UNet (Denoiser) - Load the best checkpoint (EMA version usually)
@@ -202,9 +202,21 @@ def run_test(aae, unet, da_model, diffusion, device, rank):
     avg_mae_roi = metrics_tensor[3].item() / total_samples
     avg_roi_psnr = metrics_tensor[4].item() / total_samples
  
+    gathered_real = [None for _ in range(dist.get_world_size())]
+    gathered_fake = [None for _ in range(dist.get_world_size())]
+    gathered_results = [None for _ in range(dist.get_world_size())]
+
+    dist.all_gather_object(gathered_real, features_real)
+    dist.all_gather_object(gathered_fake, features_fake)
+    dist.all_gather_object(gathered_results, per_sample_results)
+
     if rank == 0:
-        feat_real = np.stack(features_real)
-        feat_fake = np.stack(features_fake)
+        features_real_all = [x for part in gathered_real for x in part]
+        features_fake_all = [x for part in gathered_fake for x in part]
+        per_sample_results_all = [x for part in gathered_results for x in part]
+
+        feat_real = np.stack(features_real_all)
+        feat_fake = np.stack(features_fake_all)
         
         mu_real, sigma_real = np.mean(feat_real, axis=0), np.cov(feat_real, rowvar=False)
         mu_fake, sigma_fake = np.mean(feat_fake, axis=0), np.cov(feat_fake, rowvar=False)
@@ -212,16 +224,17 @@ def run_test(aae, unet, da_model, diffusion, device, rank):
         fmd_score = frechet_distance(mu_real, sigma_real, mu_fake, sigma_fake)
         
         csv_path = os.path.join(config.exp_root, config.exp_ldm, "test_metrics.csv")
-        with open(csv_path, 'w', newline='') as f:
-            w = csv.writer(f)
-            w.writerow(["ID", "PSNR", "SSIM", "MAE_ROI", "ROI_PSNR"])
-            for res in per_sample_results:
-                w.writerow([res['id'], f"{res['psnr']:.4f}", f"{res['ssim']:.4f}", 
-                            f"{res['mae_roi']:.4f}", f"{res['roi_psnr']:.4f}"])
-            w.writerow([])
-            w.writerow(["AVERAGE", f"{avg_psnr:.4f}", f"{avg_ssim:.4f}", 
-                        f"{avg_mae_roi:.4f}", f"{avg_roi_psnr:.4f}"])
-            w.writerow(["FMD", f"{fmd_score:.4f}"])
+        for res in per_sample_results_all:
+            with open(csv_path, 'w', newline='') as f:
+                w = csv.writer(f)
+                w.writerow(["ID", "PSNR", "SSIM", "MAE_ROI", "ROI_PSNR"])
+                for res in per_sample_results:
+                    w.writerow([res['id'], f"{res['psnr']:.4f}", f"{res['ssim']:.4f}", 
+                                f"{res['mae_roi']:.4f}", f"{res['roi_psnr']:.4f}"])
+                w.writerow([])
+                w.writerow(["AVERAGE", f"{avg_psnr:.4f}", f"{avg_ssim:.4f}", 
+                            f"{avg_mae_roi:.4f}", f"{avg_roi_psnr:.4f}"])
+                w.writerow(["FMD", f"{fmd_score:.4f}"])
             
         print(f"\n[Test Finished] Avg PSNR: {avg_psnr:.4f} | Avg SSIM: {avg_ssim:.4f}")
         print(f"Lesion Metrics - ROI-PSNR: {avg_roi_psnr:.4f} | ROI-MAE: {avg_mae_roi:.4f}")
