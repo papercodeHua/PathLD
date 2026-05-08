@@ -312,14 +312,6 @@ class PFBlock(nn.Module):
                 D_mmd[k] = torch.stack(mmd_vals).sum()
                 computed_any = True
                 
-                mmd_ad_cn  = self.compute_mmd_balanced(ad_feats, cn_feats, n_repeat=1)
-                mmd_mci_cn = self.compute_mmd_balanced(mci_feats, cn_feats, n_repeat=1)
-                mmd_ad_mci = self.compute_mmd_balanced(ad_feats, mci_feats, n_repeat=1)
-                
-                # Total Distributional Shift: Sum of all pairwise distances
-                D_mmd[k] = mmd_ad_cn + mmd_mci_cn + mmd_ad_mci
-                computed_any = True
-                
                 if D_mmd[k] > max_mmd: max_mmd = D_mmd[k]
             
             if computed_any:
