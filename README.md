@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  Official PyTorch implementation of <b>PathLD</b> for brain MRI-to-PET synthesis.
+  Overview of <b>PathLD</b> for brain MRI-to-PET synthesis.
 </p>
 
 ---
