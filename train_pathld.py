@@ -140,7 +140,7 @@ def train_LDM(rank: int, local_rank: int):
         load_checkpoint(config.CHECKPOINT_Unet, unet, opt_unet, 5e-5, device)
 
     criterion = nn.MSELoss()
-    diffusion = Diffusion()
+    diffusion = Diffusion(device=device)
     best_score = -float('inf')
     epoch_threshold = 1  
 
