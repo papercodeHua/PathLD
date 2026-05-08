@@ -85,7 +85,7 @@ class Diffusion:
 
         with torch.no_grad():
             for i in range(len(all_t) - 1):
-                t = all_t[i]          #
+                t = all_t[i]          
                 t_prev = all_t[i + 1] 
 
                 ab_t    = self.alpha_bar[t].view(1,1,1,1,1).expand(n,1,1,1,1)
