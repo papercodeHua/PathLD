@@ -23,18 +23,14 @@ class Diffusion:
     def prepare_noise_schedule(self) -> torch.Tensor:
         return torch.linspace(self.beta_start, self.beta_end, self.noise_steps)
 
-    def noise_images(self, x: torch.Tensor, t: torch.Tensor) -> tuple:
-        """
-        Forward Diffusion Process (q(x_t | x_0)).
-        z_t = sqrt(alpha_bar_t) * x_0 + sqrt(1 - alpha_bar_t) * epsilon
-        """
-        sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None, None]
-        sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None, None]
-        epsilon = torch.randn_like(x)
-        return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * epsilon, epsilon
-
     def sample_timesteps(self, n: int) -> torch.Tensor:
-        return torch.randint(low=1, high=self.noise_steps, size=(n,))
+        return torch.randint(low=1, high=self.noise_steps + 1, size=(n,), device=self.device)
+
+    def noise_images(self, x: torch.Tensor, t: torch.Tensor) -> tuple:
+        sqrt_alpha_bar = torch.sqrt(self.alpha_bar[t])[:, None, None, None, None]
+        sqrt_one_minus_alpha_bar = torch.sqrt(1.0 - self.alpha_bar[t])[:, None, None, None, None]
+        epsilon = torch.randn_like(x)
+        return sqrt_alpha_bar * x + sqrt_one_minus_alpha_bar * epsilon, epsilon
 
     def sample(self, model, y, label=None, ages=None, saliency=None):
         """
