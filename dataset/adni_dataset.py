@@ -123,6 +123,7 @@ class TwoDataset(Dataset):
         # Load and Preprocess 
         mri = nifti_to_numpy(mri_path)
         mri = crop(mri) 
+        mri = (mri - mri.min()) / (mri.max() - mri.min() + 1e-8)
         
         fdg = nifti_to_numpy(fdg_path)
         if self.stage != "train":
@@ -134,7 +135,7 @@ class TwoDataset(Dataset):
             raise ValueError(f"No matching row found for Subject={subject}, Image_ID={scan_id} in CSV.")
         
         label_str = row["Group"].values[0]
-        label = torch.tensor(self.group_mapping[label_str], dtype=torch.float32)
+        label = torch.tensor(self.group_mapping[label_str], dtype=torch.long)
         age = torch.tensor(row["Age"].values[0], dtype=torch.float32)
 
         unique_sample_id = f"{subject}_{scan_id}"
