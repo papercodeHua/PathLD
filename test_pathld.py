@@ -16,7 +16,7 @@ from utils.utils import seed_torch, load_checkpoint
 from utils.config import config
 from model.aae import AAE
 from model.unet import UNet
-from model.da_net import DA_NET3D
+from model.diagnosis_guidance_net import DA_NET3D
 from scheduler.linear_scheduler import Diffusion
 from dataset.adni_dataset import TwoDataset, crop
 
