@@ -130,6 +130,8 @@ def train_ResCNN(rank, local_rank):
             with open(loss_csv, 'a', newline='') as f:
                 csv.writer(f).writerow([epoch, round(avg_class_loss, 6)])
 
+        stop_flag = torch.tensor(0, device=device)
+
         if rank == 0:
             model.module.eval()
             all_preds = []
@@ -147,45 +149,37 @@ def train_ResCNN(rank, local_rank):
                 batch_size=1,
                 shuffle=False,
                 num_workers=config.numworker,
-                pin_memory=True
+                pin_memory=True,
             )
 
             with torch.no_grad():
                 for mri, fdg, label, age, _ in tqdm(val_loader, desc="Validation"):
-                    mri = np.expand_dims(mri, axis=1)   # [1, D, H, W] → [1, 1, D, H, W]
-                    mri = torch.tensor(mri).to(device)
-                    fdg = np.expand_dims(fdg, axis=1)
-                    fdg = torch.tensor(fdg).to(device)
-                    label = label.to(device)          
+                    mri = mri.unsqueeze(1).float().to(device)
+                    fdg = fdg.unsqueeze(1).float().to(device)
+                    label = label.to(device)
 
-                    probabilities = model.module(mri, fdg)  # [1, 3]
-                    preds = probabilities.argmax(dim=1)  # [1]
+                    probabilities = model.module(mri, fdg)
+                    preds = probabilities.argmax(dim=1)
 
                     all_preds.append(preds.cpu().item())
                     all_probs.append(probabilities.cpu().numpy())
                     all_labels.append(label.cpu().item())
 
-            all_probs = np.vstack(all_probs)   # [N, 3]
-            all_preds = np.array(all_preds)    # [N]
-            all_labels = np.array(all_labels)  # [N]
+            all_probs = np.vstack(all_probs)
+            all_preds = np.array(all_preds)
+            all_labels = np.array(all_labels)
 
             acc = accuracy_score(all_labels, all_preds)
-
-            auc = roc_auc_score(all_labels, all_probs, multi_class='ovr', average='macro')
-
+            auc = roc_auc_score(all_labels, all_probs, multi_class="ovr", average="macro")
             _, sen, f1s, _ = precision_recall_fscore_support(
-                all_labels, all_preds, average='macro'
+                all_labels, all_preds, average="macro"
             )
-
             spe = specificity(all_labels, all_preds, classes=[0, 1, 2])
-            with open(val_csv, 'a', newline='') as f:
+
+            with open(val_csv, "a", newline="") as f:
                 csv.writer(f).writerow([
-                    epoch,
-                    round(acc, 4),
-                    round(auc, 4),
-                    round(sen, 4),
-                    round(spe, 4),
-                    round(f1s, 4)
+                    epoch, round(acc, 4), round(auc, 4),
+                    round(sen, 4), round(spe, 4), round(f1s, 4)
                 ])
 
             if acc > best_acc:
@@ -196,7 +190,7 @@ def train_ResCNN(rank, local_rank):
                 no_improve += 1
                 if no_improve >= early_stop_patience:
                     print(f"Early stopping at epoch {epoch}")
-                    break
+                    stop_flag.fill_(1)
 
         dist.broadcast(stop_flag, src=0)
 
@@ -204,7 +198,6 @@ def train_ResCNN(rank, local_rank):
             break
 
         dist.barrier()
-
 if __name__ == '__main__':
     seed_torch()
     local_rank, rank = setup_distributed()
