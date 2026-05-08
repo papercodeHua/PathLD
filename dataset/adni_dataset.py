@@ -8,6 +8,12 @@ from torch.utils.data import Dataset
 from typing import Tuple, List, Union
 from utils.config import config
 
+def random_translation_pair(mri: np.ndarray, fdg: np.ndarray):
+    i, j, z = np.random.randint(-2, 3, size=3)
+    mri_crop = mri[10+i:170+i, 18+j:210+j, 10+z:170+z]
+    fdg_crop = fdg[10+i:170+i, 18+j:210+j, 10+z:170+z]
+    return mri_crop, fdg_crop
+
 def nifti_to_numpy(file_path: str) -> np.ndarray:
     """
     Load a NIfTI file and convert it to a float32 numpy array.
@@ -184,8 +190,7 @@ class RealMultiModalDataset(Dataset):
             mri = crop(mri)
             fdg = crop(fdg)
         else:
-            mri = random_translation(mri)
-            fdg = random_translation(fdg)
+            mri, fdg = random_translation_pair(mri, fdg)
             
         # Normalization
         mri = (mri - mri.min()) / (mri.max() - mri.min() + 1e-8)
