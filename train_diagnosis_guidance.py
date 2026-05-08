@@ -51,8 +51,8 @@ def train_da_net(rank: int, local_rank: int):
     optimizer = optim.AdamW(model.parameters(), lr=config.learning_rate, weight_decay=1e-3)
     scheduler = CosineAnnealingLR(optimizer, T_max=config.epochs, eta_min=1e-5)
 
-    if os.path.exists(config.CHECKPOINT_DA):
-        load_checkpoint(config.CHECKPOINT_DA, model, optimizer, config.learning_rate, device)
+    if os.path.exists(config.CHECKPOINT_G_diag):
+        load_checkpoint(config.CHECKPOINT_G_diag, model, optimizer, config.learning_rate, device)
         
     class_counts = torch.tensor([277, 427, 144], dtype=torch.float32)
     class_weights = 1.0 / (class_counts / class_counts.sum())
