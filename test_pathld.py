@@ -39,19 +39,19 @@ def build_and_load_models(device):
     # AAE (Decoder)
     aae = AAE().to(device)
     opt_dummy = torch.optim.Adam(aae.parameters(), lr=1e-8) # Dummy optimizer
-    load_checkpoint(config.CHECKPOINT_AAE, aae, opt_dummy, 0, device)
+    load_checkpoint(config.CHECKPOINT_AAE, aae, None, 0, device)
     aae.eval()
 
     # DA-Net (Guidance)
     da_model = DA_NET3D().to(device)
-    load_checkpoint(config.CHECKPOINT_G_diag, da_model, opt_dummy, 0, device)
+    load_checkpoint(config.CHECKPOINT_G_diag, da_model, None, 0, device)
     da_model.eval()
 
     # UNet (Denoiser) - Load the best checkpoint (EMA version usually)
     unet = UNet().to(device)
     if os.path.exists(config.CHECKPOINT_Unet):
         print(f"Loading UNet checkpoint from {config.CHECKPOINT_Unet}")
-        load_checkpoint(config.CHECKPOINT_Unet, unet, opt_dummy, 0, device)
+        load_checkpoint(config.CHECKPOINT_Unet, unet, None, 0, device)
     else:
         raise FileNotFoundError(f"UNet checkpoint not found: {config.CHECKPOINT_Unet}")
     unet.eval()
