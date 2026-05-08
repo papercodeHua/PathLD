@@ -20,8 +20,8 @@ from utils.utils import seed_torch, save_checkpoint, load_checkpoint, write_csv_
 from utils.config import config
 from model.aae import AAE
 from model.unet import UNet, EMA
-from model.multi_modal_res_cnn_3d import MultiModalResCNN3D
-from model.da_net import DA_NET3D  
+from model.multimodal_diagnosis_net import MultiModalResCNN3D
+from model.diagnosis_guidance_net import DA_NET3D 
 from scheduler.linear_scheduler import Diffusion
 from dataset.adni_dataset import TwoDataset
 
