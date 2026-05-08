@@ -180,12 +180,11 @@ def run_test(aae, unet, da_model, diffusion, device, rank):
             features_real.append(z_real)
             features_fake.append(z_fake)
             
-            if rank == 0:
-                save_dir = os.path.join(config.exp_root, config.exp_ldm, "generated_samples")
-                os.makedirs(save_dir, exist_ok=True)
-                ref_img = nib.load(config.path)
-                nifti_img = nib.Nifti1Image(syn_FDG_np, ref_img.affine, ref_img.header)
-                nib.save(nifti_img, os.path.join(save_dir, f"{sample_id}_syn.nii.gz"))
+            save_dir = os.path.join(config.exp_root, config.exp_ldm, "generated_samples")
+            os.makedirs(save_dir, exist_ok=True)    
+            ref_img = nib.load(config.path)
+            nifti_img = nib.Nifti1Image(syn_FDG_np, ref_img.affine, ref_img.header)
+            nib.save(nifti_img, os.path.join(save_dir, f"{sample_id}_syn.nii.gz"))
 
     metrics_tensor = torch.tensor([
         local_metrics['psnr'], local_metrics['ssim'], local_metrics['mae'],
@@ -224,17 +223,28 @@ def run_test(aae, unet, da_model, diffusion, device, rank):
         fmd_score = frechet_distance(mu_real, sigma_real, mu_fake, sigma_fake)
         
         csv_path = os.path.join(config.exp_root, config.exp_ldm, "test_metrics.csv")
-        for res in per_sample_results_all:
-            with open(csv_path, 'w', newline='') as f:
-                w = csv.writer(f)
-                w.writerow(["ID", "PSNR", "SSIM", "MAE_ROI", "ROI_PSNR"])
-                for res in per_sample_results:
-                    w.writerow([res['id'], f"{res['psnr']:.4f}", f"{res['ssim']:.4f}", 
-                                f"{res['mae_roi']:.4f}", f"{res['roi_psnr']:.4f}"])
-                w.writerow([])
-                w.writerow(["AVERAGE", f"{avg_psnr:.4f}", f"{avg_ssim:.4f}", 
-                            f"{avg_mae_roi:.4f}", f"{avg_roi_psnr:.4f}"])
-                w.writerow(["FMD", f"{fmd_score:.4f}"])
+        with open(csv_path, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["ID", "PSNR", "SSIM", "MAE_ROI", "ROI_PSNR"])
+
+            for res in per_sample_results_all:
+                w.writerow([
+                    res["id"],
+                    f"{res['psnr']:.4f}",
+                    f"{res['ssim']:.4f}",
+                    f"{res['mae_roi']:.4f}",
+                    f"{res['roi_psnr']:.4f}",
+                ])
+
+            w.writerow([])
+            w.writerow([
+                "AVERAGE",
+                f"{avg_psnr:.4f}",
+                f"{avg_ssim:.4f}",
+                f"{avg_mae_roi:.4f}",
+                f"{avg_roi_psnr:.4f}",
+            ])
+            w.writerow(["FMD", f"{fmd_score:.4f}"])
             
         print(f"\n[Test Finished] Avg PSNR: {avg_psnr:.4f} | Avg SSIM: {avg_ssim:.4f}")
         print(f"Lesion Metrics - ROI-PSNR: {avg_roi_psnr:.4f} | ROI-MAE: {avg_mae_roi:.4f}")
