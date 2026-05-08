@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from utils.config import config
 from inspect import isfunction
-from model.pf_blocks import GroupNorm, Upsample, Downsample,ResidualBlock
+from model.pf_block import GroupNorm, Upsample, Downsample, ResidualBlock
 
 
 class Encoder(nn.Module):
