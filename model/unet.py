@@ -8,7 +8,7 @@ import nibabel as nib
 import numpy as np
 import os
 import glob
-from dataset.ADNI_dataset import crop
+from dataset.adni_dataset import crop
 import torch.nn.functional as F
 
 def exists(x):
