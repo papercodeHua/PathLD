@@ -137,7 +137,6 @@ def train_AAE(rank, local_rank):
                 csv.writer(f).writerow([epoch,
                                           running_recon/len(loader),
                                           running_disc/len(loader)])
-
         if epoch > epoch_threshold and rank == 0:
 
             model.eval()
@@ -203,6 +202,8 @@ def train_AAE(rank, local_rank):
                     csv.writer(f).writerow([epoch,
                                             round(test_psnr/len(test_loader),3),
                                             round(test_ssim/len(test_loader),3)])
+        if dist.is_initialized():
+        dist.barrier()
 
 def encoding(rank, local_rank):
     device = torch.device(f"cuda:{local_rank}")
