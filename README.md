@@ -158,12 +158,6 @@ torchrun --nproc_per_node=<num_gpus> test_pathld.py
 
 Predictions and quantitative results will be saved under the corresponding folder in `result/`.
 
-## Notes
-
-- This repository currently keeps the original project layout and script names for compatibility.
-- If you are preparing a public release, it is recommended to further clean the codebase by unifying method naming, simplifying the directory layout, and removing temporary experimental outputs from version control.
-- If you use this repository for your paper release, please make sure the method name in the README, manuscript, and citation entry is fully consistent.
-
 ## Citation
 
 If you use this code in your research, please cite your paper here after publication:
